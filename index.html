@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Genomic Hotspot Driver Predictor | Noncoding Mutation Server</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --accent-color: #38bdf8;
+            --text-main: #f8fafc;
+            --text-sub: #94a3b8;
+            --border-color: #334155;
+            --success-color: #4ade80;
+        }
+        body {
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 40px 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 720px;
+            width: 100%;
+            background: var(--card-bg);
+            padding: 35px;
+            border-radius: 12px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--border-color);
+        }
+        h1 {
+            color: var(--accent-color);
+            font-size: 24px;
+            margin-top: 0;
+            margin-bottom: 8px;
+        }
+        p.subtitle {
+            color: var(--text-sub);
+            font-size: 14px;
+            margin-bottom: 25px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 15px;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 18px;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-sub);
+            margin-bottom: 6px;
+        }
+        input, select {
+            padding: 11px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            background-color: #0f172a;
+            color: var(--text-main);
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        input:focus, select:focus {
+            border-color: var(--accent-color);
+        }
+        button {
+            width: 100%;
+            margin-top: 25px;
+            padding: 14px;
+            background-color: #0284c7;
+            color: #ffffff;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        button:hover {
+            background-color: #0369a1;
+        }
+        .result-card {
+            display: none;
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #0f172a;
+            border-radius: 8px;
+            border-left: 5px solid var(--accent-color);
+        }
+        .result-header {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-sub);
+        }
+        .predicted-type {
+            font-size: 26px;
+            font-weight: 700;
+            color: var(--accent-color);
+            margin: 6px 0;
+        }
+        .confidence {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--success-color);
+        }
+        .breakdown {
+            margin-top: 15px;
+            font-size: 13px;
+            color: var(--text-sub);
+        }
+        .loading {
+            display: none;
+            margin-top: 20px;
+            text-align: center;
+            color: var(--accent-color);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Genomic Hotspot Driver Predictor</h1>
+    <p class="subtitle">Classify noncoding driver mutations (Melanoma vs Breast Cancer) based on genomic topology and motif alterations.</p>
+
+    <form id="predictionForm">
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="Mutated_Donors">Mutated Donors Count</label>
+                <input type="number" id="Mutated_Donors" value="11" required min="1">
+            </div>
+            <div class="form-group">
+                <label for="Fold_Enrichment">Poisson Fold Enrichment</label>
+                <input type="number" step="0.1" id="Fold_Enrichment" value="500.0" required>
+            </div>
+            <div class="form-group">
+                <label for="Absolute_Distance_to_TSS">Absolute Distance to TSS (bp)</label>
+                <input type="number" id="Absolute_Distance_to_TSS" value="50" required min="0">
+            </div>
+            <div class="form-group">
+                <label for="topology">Genomic Region Topology</label>
+                <select id="topology">
+                    <option value="promoter">Core Promoter (Is_Promoter=1)</option>
+                    <option value="enhancer">Distal Enhancer (Is_Enhancer=1)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="Has_TF_Impact">TF Binding Site Disruption</label>
+                <select id="Has_TF_Impact">
+                    <option value="1">Disrupted / Impacted (1)</option>
+                    <option value="0">Neutral / No Impact (0)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="motif_type">Motif Alteration Status</label>
+                <select id="motif_type">
+                    <option value="gain">Motif GAIN (Gain=1, Loss=0)</option>
+                    <option value="loss">Motif LOSS (Gain=0, Loss=1)</option>
+                    <option value="none">None (Gain=0, Loss=0)</option>
+                </select>
+            </div>
+        </div>
+
+        <button type="button" onclick="predictMutation()">Classify Mutation Driver</button>
+    </form>
+
+    <div id="loading" class="loading">Processing genomic vector through Random Forest engine...</div>
+
+    <div id="resultCard" class="result-card">
+        <div class="result-header">Predicted Cancer Cohort</div>
+        <div class="predicted-type" id="predictedType">--</div>
+        <div>Confidence Score: <span class="confidence" id="confidenceScore">0%</span></div>
+        <div class="breakdown" id="probabilityBreakdown"></div>
+    </div>
+</div>
+
+<script>
+    // Replace this URL once Render generates your live backend link
+    const API_URL = "https://noncoding-mutation-api.onrender.com/predict";
+
+    async function predictMutation() {
+        const resultCard = document.getElementById("resultCard");
+        const loading = document.getElementById("loading");
+
+        resultCard.style.display = "none";
+        loading.style.display = "block";
+
+        const topology = document.getElementById("topology").value;
+        const motifType = document.getElementById("motif_type").value;
+
+        const payload = {
+            Mutated_Donors: parseFloat(document.getElementById("Mutated_Donors").value),
+            Fold_Enrichment: parseFloat(document.getElementById("Fold_Enrichment").value),
+            Absolute_Distance_to_TSS: parseFloat(document.getElementById("Absolute_Distance_to_TSS").value),
+            Is_Promoter: topology === "promoter" ? 1 : 0,
+            Is_Enhancer: topology === "enhancer" ? 1 : 0,
+            Has_TF_Impact: parseFloat(document.getElementById("Has_TF_Impact").value),
+            Motif_Gain: motifType === "gain" ? 1 : 0,
+            Motif_Loss: motifType === "loss" ? 1 : 0
+        };
+
+        try {
+            const response = await fetch(API_URL, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await response.json();
+            loading.style.display = "none";
+
+            if (data.status === "success") {
+                document.getElementById("predictedType").innerText = data.predicted_cancer_type;
+                document.getElementById("confidenceScore").innerText = data.confidence_score + "%";
+
+                if (data.probability_breakdown) {
+                    const breakdownText = Object.entries(data.probability_breakdown)
+                        .map(([cancer, prob]) => `${cancer}: ${prob}%`)
+                        .join(" | ");
+                    document.getElementById("probabilityBreakdown").innerText = "Probability Distribution: " + breakdownText;
+                }
+
+                resultCard.style.display = "block";
+            } else {
+                alert("Error from API: " + (data.message || "Unknown error"));
+            }
+        } catch (err) {
+            loading.style.display = "none";
+            alert("Could not connect to the server. Ensure your Render backend service is live.");
+        }
+    }
+</script>
+</body>
+</html>
