@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NC-DriverEngine | Noncoding Mutation Driver Classification Portal</title>
+    <!-- Google Fonts for High-Grade Academic Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-main: #f8fafc;
+            --card-bg: #ffffff;
+            --brand-blue: #1e3a8a;
+            --brand-blue-dark: #0f172a;
+            --brand-orange: #ea580c;
+            --brand-orange-light: #fff7ed;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #94a3b8;
+            --border-color: #cbd5e1;
+            --border-light: #e2e8f0;
+            --success-green: #16a34a;
+            --error-red: #dc2626;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
+            --shadow-md: 0 4px 20px -2px rgba(15, 23, 42, 0.08);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-primary);
+            line-height: 1.5;
+            padding: 40px 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 960px;
+            width: 100%;
+        }
+
+        /* Scientific Header & Branding */
+        header {
+            background: var(--card-bg);
+            padding: 24px 32px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-md);
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .brand-block {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .logo-icon {
+            width: 48px;
+            height: 48px;
+            flex-shrink: 0;
+        }
+
+        .brand-text h1 {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--brand-blue);
+            letter-spacing: -0.02em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .brand-text h1 span {
+            color: var(--brand-orange);
+        }
+
+        .brand-text p {
+            font-size: 13px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .header-meta {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .pill-badge {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 6px;
+            background: #eff6ff;
+            color: var(--brand-blue);
+            border: 1px solid #bfdbfe;
+        }
+
+        .pill-badge.orange {
+            background: var(--brand-orange-light);
+            color: var(--brand-orange);
+            border-color: #ffedd5;
+        }
+
+        /* Genomic Topology Diagram Visualizer */
+        .genomic-banner {
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px 24px;
+            margin-bottom: 24px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .banner-title {
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--brand-blue);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .svg-strand-wrapper {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        /* Benchmark Test Presets */
+        .preset-bar {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 14px 20px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .preset-label {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--brand-blue);
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        .preset-btn {
+            background: #f1f5f9;
+            color: var(--brand-blue-dark);
+            border: 1px solid var(--border-color);
+            padding: 7px 14px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .preset-btn:hover {
+            background: var(--brand-orange);
+            color: #ffffff;
+            border-color: var(--brand-orange);
+        }
+
+        /* Main Workspace & Tabs */
+        .workspace-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            box-shadow: var(--shadow-md);
+            overflow: hidden;
+        }
+
+        .nav-tabs {
+            display: flex;
+            background: #f1f5f9;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 16px 20px;
+            background: transparent;
+            border: none;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-secondary);
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s ease;
+            text-align: center;
+        }
+
+        .tab-btn.active {
+            background: var(--card-bg);
+            color: var(--brand-blue);
+            border-bottom-color: var(--brand-orange);
+        }
+
+        .tab-content {
+            display: none;
+            padding: 28px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Inputs & Form Controls */
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 18px;
+        }
+
+        label {
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--brand-blue-dark);
+            margin-bottom: 6px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 120px;
+            background: #f8fafc;
+            border: 1.5px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--brand-blue-dark);
+            font-family: 'JetBrains Mono', monospace;
+            padding: 14px;
+            font-size: 13px;
+            outline: none;
+            resize: vertical;
+            transition: border-color 0.2s;
+        }
+
+        textarea:focus {
+            border-color: var(--brand-orange);
+            background: #ffffff;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 18px;
+        }
+
+        input, select {
+            padding: 11px 14px;
+            background: #f8fafc;
+            border: 1.5px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--brand-blue-dark);
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 500;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input:focus, select:focus {
+            border-color: var(--brand-orange);
+            background: #ffffff;
+        }
+
+        .submit-btn {
+            width: 100%;
+            margin-top: 10px;
+            padding: 16px;
+            background: var(--brand-blue);
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(30, 58, 138, 0.2);
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .submit-btn:hover {
+            background: var(--brand-orange);
+            box-shadow: 0 4px 12px rgba(234, 88, 12, 0.3);
+        }
+
+        /* Diagnostic & Results Visualizer */
+        .status-box {
+            display: none;
+            margin-top: 20px;
+            padding: 14px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .status-loading {
+            background: var(--brand-orange-light);
+            color: var(--brand-orange);
+            border: 1px solid #ffedd5;
+        }
+
+        .status-error {
+            background: #fef2f2;
+            color: var(--error-red);
+            border: 1px solid #fecaca;
+        }
+
+        .results-card {
+            display: none;
+            margin-top: 24px;
+            background: #ffffff;
+            border: 2px solid var(--brand-blue);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: var(--shadow-md);
+        }
+
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border-light);
+            margin-bottom: 20px;
+        }
+
+        .res-title-sub {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-muted);
+        }
+
+        .res-cohort {
+            font-size: 32px;
+            font-weight: 800;
+            color: var(--brand-orange);
+            line-height: 1.1;
+        }
+
+        .res-confidence {
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--brand-blue);
+            text-align: right;
+        }
+
+        /* Probability Meter Bar */
+        .meter-container {
+            margin: 20px 0;
+        }
+
+        .meter-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--brand-blue-dark);
+            margin-bottom: 8px;
+        }
+
+        .meter-track {
+            height: 18px;
+            background: #e2e8f0;
+            border-radius: 9px;
+            overflow: hidden;
+            display: flex;
+        }
+
+        .meter-fill-melanoma {
+            background: var(--brand-orange);
+            height: 100%;
+            transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .meter-fill-breast {
+            background: var(--brand-blue);
+            height: 100%;
+            transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .seq-diagnostics {
+            display: none;
+            background: #f8fafc;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 14px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            color: var(--brand-blue-dark);
+            margin-top: 16px;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- Header with SVG Branding -->
+    <header>
+        <div class="brand-block">
+            <svg class="logo-icon" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="32" cy="32" r="30" fill="#1E3A8A" fill-opacity="0.08" stroke="#1E3A8A" stroke-width="2"/>
+                <!-- DNA Double Helix SVG Path -->
+                <path d="M18 16C24 24 40 40 46 48" stroke="#EA580C" stroke-width="4" stroke-linecap="round"/>
+                <path d="M46 16C40 24 24 40 18 48" stroke="#1E3A8A" stroke-width="4" stroke-linecap="round"/>
+                <circle cx="32" cy="32" r="6" fill="#EA580C"/>
+                <line x1="22" y1="22" x2="42" y2="22" stroke="#1E3A8A" stroke-width="2" stroke-dasharray="2 2"/>
+                <line x1="22" y1="42" x2="42" y2="42" stroke="#EA580C" stroke-width="2" stroke-dasharray="2 2"/>
+            </svg>
+            <div class="brand-text">
+                <h1>NC-Driver<span>Engine</span></h1>
+                <p>Machine Learning Portal for Noncoding Cancer-Driver Variant Classification</p>
+            </div>
+        </div>
+        <div class="header-meta">
+            <span class="pill-badge">Assembly: GRCh38/hg38</span>
+            <span class="pill-badge orange">Model: Random Forest Ensemble</span>
+            <span class="pill-badge">Status: Live API</span>
+        </div>
+    </header>
+
+    <!-- Vector Graphic Strand Diagram -->
+    <div class="genomic-banner">
+        <div class="banner-title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            Genomic Noncoding Locus Topology & Transcription Factor Binding Map
+        </div>
+        <div class="svg-strand-wrapper">
+            <svg width="100%" height="70" viewBox="0 0 800 70" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- Genomic Baseline -->
+                <line x1="20" y1="45" x2="780" y2="45" stroke="#CBD5E1" stroke-width="3"/>
+                <!-- Core Promoter Region -->
+                <rect x="220" y="30" width="180" height="30" rx="4" fill="#1E3A8A" fill-opacity="0.1" stroke="#1E3A8A" stroke-width="1.5" stroke-dasharray="4 4"/>
+                <text x="310" y="22" text-anchor="middle" fill="#1E3A8A" font-size="11" font-weight="700">CORE PROMOTER (-300bp to TSS)</text>
+                <!-- TSS Site -->
+                <line x1="400" y1="15" x2="400" y2="55" stroke="#1E3A8A" stroke-width="3"/>
+                <polygon points="400,15 415,22 400,29" fill="#1E3A8A"/>
+                <text x="400" y="66" text-anchor="middle" fill="#1E3A8A" font-size="10" font-weight="700">TSS (+1)</text>
+                <!-- Targeted Noncoding Mutation Node -->
+                <circle cx="280" cy="45" r="9" fill="#EA580C" stroke="#FFFFFF" stroke-width="2"/>
+                <text x="280" y="18" text-anchor="middle" fill="#EA580C" font-size="11" font-weight="800">C>T Hotspot</text>
+                <!-- Distal Enhancer Region -->
+                <rect x="540" y="30" width="160" height="30" rx="4" fill="#EA580C" fill-opacity="0.1" stroke="#EA580C" stroke-width="1.5"/>
+                <text x="620" y="22" text-anchor="middle" fill="#EA580C" font-size="11" font-weight="700">DISTAL ENHANCER REGION</text>
+            </svg>
+        </div>
+    </div>
+
+    <!-- Quick Load Presets -->
+    <div class="preset-bar">
+        <span class="preset-label">Benchmark Test Variants:</span>
+        <button class="preset-btn" onclick="loadPreset('tert')">TERT Promoter C228T (Melanoma Hotspot)</button>
+        <button class="preset-btn" onclick="loadPreset('breast')">PLEKHS1 Promoter (Breast Driver)</button>
+        <button class="preset-btn" onclick="loadPreset('neutral')">Neutral Noncoding Control</button>
+    </div>
+
+    <!-- Main Workspace -->
+    <div class="workspace-card">
+        <!-- Navigation Tabs -->
+        <div class="nav-tabs">
+            <button class="tab-btn active" onclick="switchTab('seqTab', this)">1. FASTA / DNA Sequence Scanner</button>
+            <button class="tab-btn" onclick="switchTab('featureTab', this)">2. Topological Feature Vector</button>
+        </div>
+
+        <!-- Tab 1: DNA Sequence Parser -->
+        <div id="seqTab" class="tab-content active">
+            <div class="form-group">
+                <label for="sequenceInput">Paste FASTA or Raw DNA Sequence (Promoter / Enhancer Locus)</label>
+                <textarea id="sequenceInput" placeholder=">chr5:1295228 C>T TERT Promoter Hotspot&#10;AGGCCCGCCCCGACCCGCCCCGCCCCGGCCCCGCCCCGGCCCCGCCCCGGCCCCCCCCGGCCCCGCCCCGGCCCCCCCCGGCCCCGCCCC"></textarea>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="seq_donors">Mutated Donors Count</label>
+                    <input type="number" id="seq_donors" value="15" min="1">
+                </div>
+                <div class="form-group">
+                    <label for="seq_distance">Distance to TSS (bp)</label>
+                    <input type="number" id="seq_distance" value="57" min="0">
+                </div>
+            </div>
+
+            <button class="submit-btn" onclick="analyzeSequence()">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                Scan Sequence & Predict Driver Cohort
+            </button>
+        </div>
+
+        <!-- Tab 2: Topological Parameter Form -->
+        <div id="featureTab" class="tab-content">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="Mutated_Donors">Mutated Donors Count</label>
+                    <input type="number" id="Mutated_Donors" value="11" min="1">
+                </div>
+                <div class="form-group">
+                    <label for="Fold_Enrichment">Poisson Fold Enrichment</label>
+                    <input type="number" step="0.1" id="Fold_Enrichment" value="500.0">
+                </div>
+                <div class="form-group">
+                    <label for="Absolute_Distance_to_TSS">Distance to TSS (bp)</label>
+                    <input type="number" id="Absolute_Distance_to_TSS" value="50">
+                </div>
+                <div class="form-group">
+                    <label for="topology">Genomic Locus Region</label>
+                    <select id="topology">
+                        <option value="promoter">Core Promoter (Is_Promoter=1)</option>
+                        <option value="enhancer">Distal Enhancer (Is_Enhancer=1)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="Has_TF_Impact">TF Binding Site Impact</label>
+                    <select id="Has_TF_Impact">
+                        <option value="1">Disrupted / Binding Altered (1)</option>
+                        <option value="0">Neutral / Intact (0)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="motif_type">Motif Alteration Status</label>
+                    <select id="motif_type">
+                        <option value="gain">Motif GAIN (Gain=1, Loss=0)</option>
+                        <option value="loss">Motif LOSS (Gain=0, Loss=1)</option>
+                        <option value="none">None (Gain=0, Loss=0)</option>
+                    </select>
+                </div>
+            </div>
+
+            <button class="submit-btn" onclick="predictFromFeatures()">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                Classify Topological Features
+            </button>
+        </div>
+    </div>
+
+    <!-- Status Message Indicator -->
+    <div id="statusBox" class="status-box"></div>
+
+    <!-- Scientific Results Dashboard -->
+    <div id="resultsCard" class="results-card">
+        <div class="results-header">
+            <div>
+                <div class="res-title-sub">Predicted Cancer Driver Cohort</div>
+                <div class="res-cohort" id="predictedType">--</div>
+            </div>
+            <div>
+                <div class="res-title-sub" style="text-align:right;">Model Confidence</div>
+                <div class="res-confidence" id="confidenceScore">0%</div>
+            </div>
+        </div>
+
+        <!-- Dynamic Probability Meter -->
+        <div class="meter-container">
+            <div class="meter-labels">
+                <span id="melanomaLabel" style="color: var(--brand-orange);">Melanoma: 0%</span>
+                <span id="breastLabel" style="color: var(--brand-blue);">Breast Cancer: 0%</span>
+            </div>
+            <div class="meter-track">
+                <div id="melanomaBar" class="meter-fill-melanoma" style="width: 50%;"></div>
+                <div id="breastBar" class="meter-fill-breast" style="width: 50%;"></div>
+            </div>
+        </div>
+
+        <!-- Sequence Diagnostic Metrics -->
+        <div id="seqDiagnostics" class="seq-diagnostics"></div>
+    </div>
+</div>
+
+<script>
+    // Live Backend API on Render
+    const API_URL = "https://noncoding-mutation-server-1.onrender.com/predict";
+
+    function switchTab(tabId, btn) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        btn.classList.add('active');
+    }
+
+    function loadPreset(type) {
+        if (type === 'tert') {
+            document.getElementById("Mutated_Donors").value = 15;
+            document.getElementById("Fold_Enrichment").value = 650.0;
+            document.getElementById("Absolute_Distance_to_TSS").value = 57;
+            document.getElementById("topology").value = "promoter";
+            document.getElementById("Has_TF_Impact").value = "1";
+            document.getElementById("motif_type").value = "gain";
+            document.getElementById("seq_donors").value = 15;
+            document.getElementById("seq_distance").value = 57;
+            document.getElementById("sequenceInput").value = ">TERT_Promoter_C228T_Melanoma_Hotspot\nAGGCCCGCCCCGACCCGCCCCGCCCCGGCCCCGCCCCGGCCCCGCCCCGGCCCCCCCCGGCCCCGCCCCGGCCCCCCCCGGCCCCGCCCC";
+        } else if (type === 'breast') {
+            document.getElementById("Mutated_Donors").value = 8;
+            document.getElementById("Fold_Enrichment").value = 320.0;
+            document.getElementById("Absolute_Distance_to_TSS").value = 120;
+            document.getElementById("topology").value = "promoter";
+            document.getElementById("Has_TF_Impact").value = "1";
+            document.getElementById("motif_type").value = "loss";
+            document.getElementById("seq_donors").value = 8;
+            document.getElementById("seq_distance").value = 120;
+            document.getElementById("sequenceInput").value = ">PLEKHS1_Promoter_Breast_Cancer_Driver\nCGACCGCGGAGCGGCGCCGGGCACCCGCGCGCCGCGCCCGGGCCCGCCGCCCGCGCCGGCCCTGGCCCCGG";
+        } else {
+            document.getElementById("Mutated_Donors").value = 1;
+            document.getElementById("Fold_Enrichment").value = 12.0;
+            document.getElementById("Absolute_Distance_to_TSS").value = 4500;
+            document.getElementById("topology").value = "enhancer";
+            document.getElementById("Has_TF_Impact").value = "0";
+            document.getElementById("motif_type").value = "none";
+            document.getElementById("seq_donors").value = 1;
+            document.getElementById("seq_distance").value = 4500;
+            document.getElementById("sequenceInput").value = ">Neutral_Intergenic_Region\nATCGGCTAAGCTAGCTAGCTAGCTAAGCTAGCTAGCTAGCTAATCGATCGATC";
+        }
+    }
+
+    function analyzeSequence() {
+        const rawSeq = document.getElementById("sequenceInput").value.toUpperCase();
+        const cleanSeq = rawSeq.replace(/>.*/g, '').replace(/[^ATCG]/g, '');
+        
+        if (!cleanSeq) {
+            showStatus("Error: Please paste a valid DNA sequence containing A, T, C, G bases.", true);
+            return;
+        }
+
+        const gcCount = (cleanSeq.match(/[GC]/g) || []).length;
+        const gcContent = ((gcCount / cleanSeq.length) * 100).toFixed(1);
+        const etsMotif = cleanSeq.includes("CCCGCCCC") || cleanSeq.includes("GGCCGG");
+        
+        const donors = parseFloat(document.getElementById("seq_donors").value) || 5;
+        const distance = parseFloat(document.getElementById("seq_distance").value) || 100;
+
+        const payload = {
+            Mutated_Donors: donors,
+            Fold_Enrichment: parseFloat((donors * 38.2).toFixed(1)),
+            Absolute_Distance_to_TSS: distance,
+            Is_Promoter: distance <= 300 ? 1 : 0,
+            Is_Enhancer: distance > 300 ? 1 : 0,
+            Has_TF_Impact: etsMotif ? 1 : (gcContent > 60 ? 1 : 0),
+            Motif_Gain: etsMotif ? 1 : 0,
+            Motif_Loss: !etsMotif && gcContent < 40 ? 1 : 0
+        };
+
+        const diagText = `[SEQUENCE SCAN DIAGNOSTICS]\n• Length: ${cleanSeq.length} bp\n• GC Content: ${gcContent}%\n• ETS Binding Motif (5'-CCCGCCCC-3'): ${etsMotif ? 'DETECTED (Motif Gain)' : 'NOT DETECTED'}\n• Inferred Topology: ${distance <= 300 ? 'Core Promoter (-300bp to TSS)' : 'Distal Enhancer'}`;
+        
+        document.getElementById("seqDiagnostics").innerText = diagText;
+        document.getElementById("seqDiagnostics").style.display = "block";
+
+        executePrediction(payload);
+    }
+
+    function predictFromFeatures() {
+        document.getElementById("seqDiagnostics").style.display = "none";
+        const topology = document.getElementById("topology").value;
+        const motifType = document.getElementById("motif_type").value;
+
+        const payload = {
+            Mutated_Donors: parseFloat(document.getElementById("Mutated_Donors").value),
+            Fold_Enrichment: parseFloat(document.getElementById("Fold_Enrichment").value),
+            Absolute_Distance_to_TSS: parseFloat(document.getElementById("Absolute_Distance_to_TSS").value),
+            Is_Promoter: topology === "promoter" ? 1 : 0,
+            Is_Enhancer: topology === "enhancer" ? 1 : 0,
+            Has_TF_Impact: parseFloat(document.getElementById("Has_TF_Impact").value),
+            Motif_Gain: motifType === "gain" ? 1 : 0,
+            Motif_Loss: motifType === "loss" ? 1 : 0
+        };
+
+        executePrediction(payload);
+    }
+
+    async function executePrediction(payload) {
+        showStatus("Executing Random Forest classification on Render server...", false);
+        document.getElementById("resultsCard").style.display = "none";
+
+        try {
+            const response = await fetch(API_URL, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await response.json();
+            hideStatus();
+
+            if (data.status === "success") {
+                document.getElementById("predictedType").innerText = data.predicted_cancer_type;
+                document.getElementById("confidenceScore").innerText = data.confidence_score + "%";
+
+                const melanomaProb = data.probability_breakdown["Melanoma"] || 0;
+                const breastProb = data.probability_breakdown["Breast Cancer"] || 0;
+
+                document.getElementById("melanomaLabel").innerText = `Melanoma: ${melanomaProb}%`;
+                document.getElementById("breastLabel").innerText = `Breast Cancer: ${breastProb}%`;
+                document.getElementById("melanomaBar").style.width = `${melanomaProb}%`;
+                document.getElementById("breastBar").style.width = `${breastProb}%`;
+
+                document.getElementById("resultsCard").style.display = "block";
+            } else {
+                showStatus("Engine Error: " + (data.message || "Failed to parse feature vector."), true);
+            }
+        } catch (err) {
+            showStatus("Connection error. Ensure your Render server is online.", true);
+        }
+    }
+
+    function showStatus(msg, isError) {
+        const box = document.getElementById("statusBox");
+        box.innerText = msg;
+        box.className = "status-box " + (isError ? "status-error" : "status-loading");
+        box.style.display = "block";
+    }
+
+    function hideStatus() {
+        document.getElementById("statusBox").style.display = "none";
+    }
+</script>
+</body>
+</html>
