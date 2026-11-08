@@ -2,7 +2,7 @@
 server.py
 -------------------------------------------------------------------
 Production REST API for Noncoding Cancer-Driver Mutation Hotspots.
-Serves Machine Learning predictions for external web frontends.
+Serves ML predictions (Melanoma vs. Breast Cancer).
 -------------------------------------------------------------------
 """
 
@@ -16,14 +16,19 @@ from sklearn.ensemble import RandomForestClassifier
 import joblib
 
 app = Flask(__name__)
-# Enable CORS so your website (e.g., https://mutationpredict.org) can talk to this API
+# Enable CORS for external frontend calls
 CORS(app)
 
-# Path setup
 BASE_DIR = Path(__file__).resolve().parent
-RESULTS_DIR = BASE_DIR / "results"
-MATRIX_FILE = RESULTS_DIR / "tables" / "ml_hotspot_training_matrix.csv"
-MODEL_FILE = RESULTS_DIR / "models" / "rf_hotspot_classifier.pkl"
+
+# Flexible path lookup for matrix CSV
+POSSIBLE_MATRIX_PATHS = [
+    BASE_DIR / "ml_hotspot_training_matrix.csv",
+    BASE_DIR / "results" / "tables" / "ml_hotspot_training_matrix.csv",
+    Path("ml_hotspot_training_matrix.csv")
+]
+
+MODEL_FILE = BASE_DIR / "rf_hotspot_classifier.pkl"
 
 FEATURE_COLS = [
     "Mutated_Donors", 
@@ -39,56 +44,56 @@ FEATURE_COLS = [
 MODEL = None
 
 
+def find_matrix_file():
+    for p in POSSIBLE_MATRIX_PATHS:
+        if p.exists():
+            return p
+    return None
+
+
 def initialize_engine():
-    """Loads existing pre-trained model or trains a fresh instance on startup."""
+    """Loads pre-trained model or trains a fresh Random Forest classifier on boot."""
     global MODEL
-    MODEL_FILE.parent.mkdir(parents=True, exist_ok=True)
+    matrix_path = find_matrix_file()
 
     if MODEL_FILE.exists():
-        print(f"[*] Loading serialized model from: {MODEL_FILE.name}")
+        print(f"[*] Loading serialized model from disk: {MODEL_FILE}")
         MODEL = joblib.load(MODEL_FILE)
-    elif MATRIX_FILE.exists():
-        print(f"[*] Training new Random Forest Classifier from: {MATRIX_FILE.name}")
-        df = pd.read_csv(MATRIX_FILE)
+    elif matrix_path is not None:
+        print(f"[*] Training Random Forest Classifier from: {matrix_path}")
+        df = pd.read_csv(matrix_path)
         X = df[FEATURE_COLS]
         y = df["Cancer_Type"]
 
         clf = RandomForestClassifier(n_estimators=100, max_depth=5, random_state=42)
         clf.fit(X, y)
         
-        # Save model to disk
         joblib.dump(clf, MODEL_FILE)
         MODEL = clf
-        print(f"[+] Model saved to: {MODEL_FILE}")
+        print("[+] Model successfully trained and serialized.")
     else:
-        print("[!] Warning: Neither pre-trained model nor training matrix CSV found.")
+        print("[!] Warning: Matrix CSV not found. API initialized in standby mode.")
 
 
-# Initialize model on boot
+# Initialize model on startup
 initialize_engine()
 
 
 @app.route('/', methods=['GET'])
 def health_check():
-    """Health check endpoint to verify server status on cloud hosts."""
     return jsonify({
         "status": "online",
-        "service": "Noncoding Mutation Driver Prediction API",
-        "model_loaded": MODEL is not None,
-        "supported_features": FEATURE_COLS
+        "service": "Noncoding Driver Mutation Classification API",
+        "model_loaded": MODEL is not None
     }), 200
 
 
 @app.route('/predict', methods=['POST'])
 def predict():
-    """
-    Predicts cancer cohort based on noncoding mutation features.
-    Accepts JSON body matching FEATURE_COLS.
-    """
     if MODEL is None:
         return jsonify({
             "status": "error",
-            "message": "Engine unavailable. Training matrix not loaded."
+            "message": "Engine unavailable. Training matrix CSV was not found on server."
         }), 500
 
     try:
@@ -96,7 +101,6 @@ def predict():
         if not data:
             return jsonify({"status": "error", "message": "Empty JSON payload."}), 400
 
-        # Validate input features and check for missing fields
         missing_fields = [col for col in FEATURE_COLS if col not in data]
         if missing_fields:
             return jsonify({
@@ -104,16 +108,13 @@ def predict():
                 "message": f"Missing required features: {missing_fields}"
             }), 400
 
-        # Build feature vector DataFrame
         input_data = {col: [float(data[col])] for col in FEATURE_COLS}
         input_df = pd.DataFrame(input_data)
 
-        # Inference
         prediction = MODEL.predict(input_df)[0]
         probabilities = MODEL.predict_proba(input_df)[0]
         class_names = MODEL.classes_
 
-        # Format probability distribution
         prob_distribution = {
             cls: float(np.round(prob * 100, 2)) 
             for cls, prob in zip(class_names, probabilities)
@@ -124,18 +125,13 @@ def predict():
             "status": "success",
             "predicted_cancer_type": prediction,
             "confidence_score": confidence,
-            "probability_breakdown": prob_distribution,
-            "analyzed_features": data
+            "probability_breakdown": prob_distribution
         }), 200
 
     except Exception as e:
-        return jsonify({
-            "status": "error",
-            "message": str(e)
-        }), 400
+        return jsonify({"status": "error", "message": str(e)}), 400
 
 
 if __name__ == '__main__':
-    # PORT defaults to 5000 locally, but pulls environment variable for cloud deployment
     port = int(os.environ.get("PORT", 5000))
     app.run(host='0.0.0.0', port=port, debug=False)
