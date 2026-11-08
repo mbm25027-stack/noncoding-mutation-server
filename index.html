@@ -13,6 +13,7 @@
             --text-sub: #94a3b8;
             --border-color: #334155;
             --success-color: #4ade80;
+            --error-color: #f87171;
         }
         body {
             font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
@@ -127,13 +128,23 @@
             text-align: center;
             color: var(--accent-color);
         }
+        .error-message {
+            display: none;
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #451a1a;
+            border-left: 5px solid var(--error-color);
+            color: var(--error-color);
+            border-radius: 6px;
+            font-size: 14px;
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
     <h1>Genomic Hotspot Driver Predictor</h1>
-    <p class="subtitle">Classify noncoding driver mutations (Melanoma vs Breast Cancer) based on genomic topology and motif alterations.</p>
+    <p class="subtitle">Classify noncoding driver mutations (Melanoma vs. Breast Cancer) based on genomic topology and motif alterations.</p>
 
     <form id="predictionForm">
         <div class="form-grid">
@@ -176,7 +187,9 @@
         <button type="button" onclick="predictMutation()">Classify Mutation Driver</button>
     </form>
 
-    <div id="loading" class="loading">Processing genomic vector through Random Forest engine...</div>
+    <div id="loading" class="loading">Processing genomic vector through Random Forest engine on Render...</div>
+
+    <div id="errorMessage" class="error-message"></div>
 
     <div id="resultCard" class="result-card">
         <div class="result-header">Predicted Cancer Cohort</div>
@@ -187,14 +200,15 @@
 </div>
 
 <script>
-    // Replace this URL once Render generates your live backend link
-    const API_URL = "https://noncoding-mutation-api.onrender.com/predict";
+    const API_URL = "https://noncoding-mutation-server-1.onrender.com/predict";
 
     async function predictMutation() {
         const resultCard = document.getElementById("resultCard");
         const loading = document.getElementById("loading");
+        const errorMessage = document.getElementById("errorMessage");
 
         resultCard.style.display = "none";
+        errorMessage.style.display = "none";
         loading.style.display = "block";
 
         const topology = document.getElementById("topology").value;
@@ -234,11 +248,13 @@
 
                 resultCard.style.display = "block";
             } else {
-                alert("Error from API: " + (data.message || "Unknown error"));
+                errorMessage.innerText = "Engine Error: " + (data.message || "Unable to process vector.");
+                errorMessage.style.display = "block";
             }
         } catch (err) {
             loading.style.display = "none";
-            alert("Could not connect to the server. Ensure your Render backend service is live.");
+            errorMessage.innerText = "Connection failed. Please ensure the Render server is running.";
+            errorMessage.style.display = "block";
         }
     }
 </script>
